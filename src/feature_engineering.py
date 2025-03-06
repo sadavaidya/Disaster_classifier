@@ -3,6 +3,7 @@ import sqlite3
 from sklearn.feature_extraction.text import TfidfVectorizer
 import logging
 from src.config import DB_PATH
+import joblib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -44,6 +45,8 @@ def apply_tfidf(df: pd.DataFrame, text_column: str = 'text'):
         vectorizer = TfidfVectorizer(max_features=5000)
         X = vectorizer.fit_transform(df[text_column])
         y = df['target']
+        joblib.dump(vectorizer, 'models/tfidf_vectorizer.pkl')
+        logging.info("TF-IDF vectorizer saved successfully.")
         logging.info(f"TF-IDF applied, resulting shape: {X.shape}")
         return X, y
     except Exception as e:

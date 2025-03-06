@@ -50,6 +50,7 @@ To deploy the model using Streamlit:
    ```
 
 This command will launch a web interface where users can enter a message and receive a classification.
+3. Sample screenshot of how streamlit app will look, can be found in the repository as demp_streamlit_app.png
 
 ## Notes
 - The Streamlit app (`app.py`) is included in this repository.

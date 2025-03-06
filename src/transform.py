@@ -15,6 +15,43 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 STOPWORDS = set(stopwords.words(STOPWORDS_LANGUAGE))
 
 
+def validate_data(df: pd.DataFrame, expected_columns: list):
+    """
+    Validate data for schema, null values, duplicates, and target column integrity.
+
+    Args:
+        df (pd.DataFrame): DataFrame to validate.
+        expected_columns (list): List of expected columns.
+    """
+    # Check if expected columns exist
+    missing_columns = [col for col in expected_columns if col not in df.columns]
+    if missing_columns:
+        logging.error(f"Missing columns: {missing_columns}")
+        raise ValueError(f"Missing columns: {missing_columns}")
+
+    # Check for null values
+    for col in df.columns:
+        null_count = df[col].isnull().sum()
+        if null_count.any():
+            logging.warning(f"Column '{col}' has {null_count} missing values.")
+    # null_counts = df.isnull().sum()
+    # if null_counts.any():
+    #     logging.warning(f"Null values found:\n{null_counts}")
+
+    # Remove duplicates
+    before_dedup = df.shape[0]
+    df.drop_duplicates(inplace=True)
+    after_dedup = df.shape[0]
+    logging.info(f"Removed {before_dedup - after_dedup} duplicate rows")
+
+    # Validate target column if it exists
+    if 'target' in df.columns:
+        invalid_targets = df[~df['target'].isin([0, 1])]
+        if not invalid_targets.empty:
+            logging.error(f"Invalid target values found:\n{invalid_targets}")
+            raise ValueError("Invalid target values found")
+
+
 def clean_text(text: str) -> str:
     """
     Clean and normalize text data.
@@ -27,7 +64,7 @@ def clean_text(text: str) -> str:
     """
     if not isinstance(text, str):
         return ""
-    
+
     text = text.lower()                                    # Lowercasing
     text = re.sub(r'http\S+', '', text)                  # Remove URLs
     text = re.sub(r'<.*?>', '', text)                     # Remove HTML tags
@@ -39,7 +76,7 @@ def clean_text(text: str) -> str:
 
 def transform_data(df: pd.DataFrame, text_column: str) -> pd.DataFrame:
     """
-    Apply text cleaning on a specific column of a DataFrame.
+    Apply data validation and text cleaning on a specific column of a DataFrame.
 
     Args:
         df (pd.DataFrame): Input DataFrame.
@@ -48,9 +85,13 @@ def transform_data(df: pd.DataFrame, text_column: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Transformed DataFrame.
     """
+    expected_columns = ['id', text_column, 'target'] if 'target' in df.columns else ['id', text_column]
+    validate_data(df, expected_columns)
+
     logging.info(f"Transforming text data in column: {text_column}")
     df[text_column] = df[text_column].apply(clean_text)
     logging.info("Text data transformation complete")
+
     return df
 
 

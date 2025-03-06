@@ -35,3 +35,6 @@ def load_data(file_path: str) -> pd.DataFrame:
 if __name__ == "__main__":
     train_data = load_data(TRAIN_PATH)
     test_data = load_data(TEST_PATH)
+    
+
+

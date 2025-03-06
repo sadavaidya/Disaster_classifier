@@ -1,9 +1,11 @@
 import logging
+from sklearn.model_selection import train_test_split
 from src.extract import load_data
 from src.transform import transform_data
 from src.load import save_to_database
 from src.feature_engineering import load_cleaned_data, apply_tfidf
 from src.model_training import train_and_evaluate
+from src.model_evaluation import compare_models
 from src.config import TRAIN_PATH, TEST_PATH
 
 # Configure logging
@@ -28,8 +30,16 @@ def main():
     train_data = load_cleaned_data('cleaned_train')
     X, y = apply_tfidf(train_data)
 
-    # Model Training and Evaluation
-    train_and_evaluate(X, y)
+    # Train-test split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Train and evaluate models
+    models, results = train_and_evaluate(X_train, y_train, X_test, y_test)
+
+    # Compare models
+    compare_models(results)
+
+    logging.info("Compared models using plots")
 
     logging.info("Pipeline execution complete")
 

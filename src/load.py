@@ -8,7 +8,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 DB_PATH = f"{OUTPUT_DIR}/disaster_tweets.db"
 
-
 def save_to_database(df: pd.DataFrame, table_name: str, db_path: str = DB_PATH):
     """
     Save DataFrame to SQLite database.

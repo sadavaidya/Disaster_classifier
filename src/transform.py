@@ -3,16 +3,19 @@ import re
 import logging
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
 import nltk
 from src.config import TRAIN_PATH, TEST_PATH, CLEANED_TRAIN_PATH, CLEANED_TEST_PATH, STOPWORDS_LANGUAGE
 
 nltk.download('stopwords')
 nltk.download('punkt')
+nltk.download('wordnet')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 STOPWORDS = set(stopwords.words(STOPWORDS_LANGUAGE))
+lemmatizer = WordNetLemmatizer()
 
 
 def validate_data(df: pd.DataFrame, expected_columns: list):
@@ -32,11 +35,8 @@ def validate_data(df: pd.DataFrame, expected_columns: list):
     # Check for null values
     for col in df.columns:
         null_count = df[col].isnull().sum()
-        if null_count.any():
+        if null_count > 0:
             logging.warning(f"Column '{col}' has {null_count} missing values.")
-    # null_counts = df.isnull().sum()
-    # if null_counts.any():
-    #     logging.warning(f"Null values found:\n{null_counts}")
 
     # Remove duplicates
     before_dedup = df.shape[0]
@@ -54,13 +54,13 @@ def validate_data(df: pd.DataFrame, expected_columns: list):
 
 def clean_text(text: str) -> str:
     """
-    Clean and normalize text data.
+    Clean, normalize, and lemmatize text data.
 
     Args:
         text (str): Raw text data.
 
     Returns:
-        str: Cleaned and normalized text.
+        str: Cleaned, normalized, and lemmatized text.
     """
     if not isinstance(text, str):
         return ""
@@ -70,7 +70,10 @@ def clean_text(text: str) -> str:
     text = re.sub(r'<.*?>', '', text)                     # Remove HTML tags
     text = re.sub(r'[^a-zA-Z\s]', '', text)              # Remove special characters
     tokens = word_tokenize(text)                         # Tokenization
-    cleaned_text = ' '.join([word for word in tokens if word not in STOPWORDS])
+
+    # Remove stopwords and apply lemmatization
+    cleaned_text = ' '.join([lemmatizer.lemmatize(word) for word in tokens if word not in STOPWORDS])
+
     return cleaned_text
 
 

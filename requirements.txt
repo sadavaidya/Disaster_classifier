@@ -5,3 +5,6 @@ matplotlib
 seaborn
 Streamlit
 wordcloud
+transformers
+torch
+accelerate>=0.26.0
